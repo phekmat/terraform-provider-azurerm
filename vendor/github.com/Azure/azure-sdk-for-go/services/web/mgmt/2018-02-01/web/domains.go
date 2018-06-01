@@ -71,7 +71,7 @@ func (client DomainsClient) CheckAvailabilityPreparer(ctx context.Context, ident
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-04-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -201,7 +201,7 @@ func (client DomainsClient) CreateOrUpdatePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-04-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -290,7 +290,7 @@ func (client DomainsClient) CreateOrUpdateOwnershipIdentifierPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-04-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -369,7 +369,7 @@ func (client DomainsClient) DeletePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-04-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -448,7 +448,7 @@ func (client DomainsClient) DeleteOwnershipIdentifierPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-04-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -522,7 +522,7 @@ func (client DomainsClient) GetPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-04-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -584,7 +584,7 @@ func (client DomainsClient) GetControlCenterSsoRequestPreparer(ctx context.Conte
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-04-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -661,7 +661,7 @@ func (client DomainsClient) GetOwnershipIdentifierPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-04-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -724,7 +724,7 @@ func (client DomainsClient) ListPreparer(ctx context.Context) (*http.Request, er
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-04-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -825,7 +825,7 @@ func (client DomainsClient) ListByResourceGroupPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-04-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -928,7 +928,7 @@ func (client DomainsClient) ListOwnershipIdentifiersPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-04-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1020,7 +1020,7 @@ func (client DomainsClient) ListRecommendationsPreparer(ctx context.Context, par
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-04-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1124,7 +1124,7 @@ func (client DomainsClient) RenewPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-04-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1150,7 +1150,7 @@ func (client DomainsClient) RenewResponder(resp *http.Response) (result autorest
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent, http.StatusBadRequest, http.StatusInternalServerError),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -1201,7 +1201,7 @@ func (client DomainsClient) UpdatePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-04-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1282,7 +1282,7 @@ func (client DomainsClient) UpdateOwnershipIdentifierPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-04-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

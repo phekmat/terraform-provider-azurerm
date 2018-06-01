@@ -40,6 +40,119 @@ func NewAppServiceEnvironmentsClientWithBaseURI(baseURI string, subscriptionID s
 	return AppServiceEnvironmentsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// ChangeVnet move an App Service Environment to a different VNET.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the App Service Environment.
+// vnetInfo - details for the new virtual network.
+func (client AppServiceEnvironmentsClient) ChangeVnet(ctx context.Context, resourceGroupName string, name string, vnetInfo VirtualNetworkProfile) (result AppServiceEnvironmentsChangeVnetFuture, err error) {
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppServiceEnvironmentsClient", "ChangeVnet", err.Error())
+	}
+
+	req, err := client.ChangeVnetPreparer(ctx, resourceGroupName, name, vnetInfo)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ChangeVnet", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.ChangeVnetSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "ChangeVnet", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// ChangeVnetPreparer prepares the ChangeVnet request.
+func (client AppServiceEnvironmentsClient) ChangeVnetPreparer(ctx context.Context, resourceGroupName string, name string, vnetInfo VirtualNetworkProfile) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-02-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/changeVirtualNetwork", pathParameters),
+		autorest.WithJSON(vnetInfo),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ChangeVnetSender sends the ChangeVnet request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppServiceEnvironmentsClient) ChangeVnetSender(req *http.Request) (future AppServiceEnvironmentsChangeVnetFuture, err error) {
+	sender := autorest.DecorateSender(client, azure.DoRetryWithRegistration(client.Client))
+	future.Future = azure.NewFuture(req)
+	future.req = req
+	_, err = future.Done(sender)
+	if err != nil {
+		return
+	}
+	err = autorest.Respond(future.Response(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted))
+	return
+}
+
+// ChangeVnetResponder handles the response to the ChangeVnet request. The method always
+// closes the http.Response Body.
+func (client AppServiceEnvironmentsClient) ChangeVnetResponder(resp *http.Response) (result AppCollectionPage, err error) {
+	result.ac, err = client.changeVnetResponder(resp)
+	result.fn = client.changeVnetNextResults
+	return
+}
+
+func (client AppServiceEnvironmentsClient) changeVnetResponder(resp *http.Response) (result AppCollection, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// changeVnetNextResults retrieves the next set of results, if any.
+func (client AppServiceEnvironmentsClient) changeVnetNextResults(lastResults AppCollection) (result AppCollection, err error) {
+	req, err := lastResults.appCollectionPreparer()
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "changeVnetNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "changeVnetNextResults", resp, "Failure sending next results request")
+	}
+	return client.changeVnetResponder(resp)
+}
+
+// ChangeVnetComplete enumerates all values, automatically crossing page boundaries as required.
+func (client AppServiceEnvironmentsClient) ChangeVnetComplete(ctx context.Context, resourceGroupName string, name string, vnetInfo VirtualNetworkProfile) (result AppServiceEnvironmentsChangeVnetAllFuture, err error) {
+	var future AppServiceEnvironmentsChangeVnetFuture
+	future, err = client.ChangeVnet(ctx, resourceGroupName, name, vnetInfo)
+	result.Future = future.Future
+	result.req = future.req
+	return
+}
+
 // CreateOrUpdate create or update an App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
@@ -84,7 +197,7 @@ func (client AppServiceEnvironmentsClient) CreateOrUpdatePreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -164,7 +277,7 @@ func (client AppServiceEnvironmentsClient) CreateOrUpdateMultiRolePoolPreparer(c
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -246,7 +359,7 @@ func (client AppServiceEnvironmentsClient) CreateOrUpdateWorkerPoolPreparer(ctx 
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -327,7 +440,7 @@ func (client AppServiceEnvironmentsClient) DeletePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -412,7 +525,7 @@ func (client AppServiceEnvironmentsClient) GetPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -489,7 +602,7 @@ func (client AppServiceEnvironmentsClient) GetDiagnosticsItemPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -564,7 +677,7 @@ func (client AppServiceEnvironmentsClient) GetMultiRolePoolPreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -641,7 +754,7 @@ func (client AppServiceEnvironmentsClient) GetWorkerPoolPreparer(ctx context.Con
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -704,7 +817,7 @@ func (client AppServiceEnvironmentsClient) ListPreparer(ctx context.Context) (*h
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -807,7 +920,7 @@ func (client AppServiceEnvironmentsClient) ListAppServicePlansPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -908,7 +1021,7 @@ func (client AppServiceEnvironmentsClient) ListByResourceGroupPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1011,7 +1124,7 @@ func (client AppServiceEnvironmentsClient) ListCapacitiesPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1113,7 +1226,7 @@ func (client AppServiceEnvironmentsClient) ListDiagnosticsPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1188,7 +1301,7 @@ func (client AppServiceEnvironmentsClient) ListMetricDefinitionsPreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1268,7 +1381,7 @@ func (client AppServiceEnvironmentsClient) ListMetricsPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1377,7 +1490,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRoleMetricDefinitionsPrepare
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1487,7 +1600,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRoleMetricsPreparer(ctx cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1608,7 +1721,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRolePoolInstanceMetricDefini
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1715,7 +1828,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRolePoolInstanceMetricsPrepa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1726,7 +1839,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRolePoolInstanceMetricsPrepa
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/multiRolePools/default/instances/{instance}/metrics", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/multiRolePools/default/instances/{instance}metrics", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -1821,7 +1934,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRolePoolsPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1924,7 +2037,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRolePoolSkusPreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2027,7 +2140,7 @@ func (client AppServiceEnvironmentsClient) ListMultiRoleUsagesPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2129,7 +2242,7 @@ func (client AppServiceEnvironmentsClient) ListOperationsPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2208,7 +2321,7 @@ func (client AppServiceEnvironmentsClient) ListUsagesPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2313,7 +2426,7 @@ func (client AppServiceEnvironmentsClient) ListVipsPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2390,7 +2503,7 @@ func (client AppServiceEnvironmentsClient) ListWebAppsPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2498,7 +2611,7 @@ func (client AppServiceEnvironmentsClient) ListWebWorkerMetricDefinitionsPrepare
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2607,7 +2720,7 @@ func (client AppServiceEnvironmentsClient) ListWebWorkerMetricsPreparer(ctx cont
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2718,7 +2831,7 @@ func (client AppServiceEnvironmentsClient) ListWebWorkerUsagesPreparer(ctx conte
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2826,7 +2939,7 @@ func (client AppServiceEnvironmentsClient) ListWorkerPoolInstanceMetricDefinitio
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2937,7 +3050,7 @@ func (client AppServiceEnvironmentsClient) ListWorkerPoolInstanceMetricsPreparer
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2951,7 +3064,7 @@ func (client AppServiceEnvironmentsClient) ListWorkerPoolInstanceMetricsPreparer
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/workerPools/{workerPoolName}/instances/{instance}/metrics", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/workerPools/{workerPoolName}/instances/{instance}metrics", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -3046,7 +3159,7 @@ func (client AppServiceEnvironmentsClient) ListWorkerPoolsPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3151,7 +3264,7 @@ func (client AppServiceEnvironmentsClient) ListWorkerPoolSkusPreparer(ctx contex
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3253,7 +3366,7 @@ func (client AppServiceEnvironmentsClient) RebootPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3321,7 +3434,7 @@ func (client AppServiceEnvironmentsClient) ResumePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3431,7 +3544,7 @@ func (client AppServiceEnvironmentsClient) SuspendPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3505,6 +3618,80 @@ func (client AppServiceEnvironmentsClient) SuspendComplete(ctx context.Context, 
 	return
 }
 
+// SyncVirtualNetworkInfo resume an App Service Environment.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the App Service Environment.
+func (client AppServiceEnvironmentsClient) SyncVirtualNetworkInfo(ctx context.Context, resourceGroupName string, name string) (result autorest.Response, err error) {
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppServiceEnvironmentsClient", "SyncVirtualNetworkInfo", err.Error())
+	}
+
+	req, err := client.SyncVirtualNetworkInfoPreparer(ctx, resourceGroupName, name)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "SyncVirtualNetworkInfo", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.SyncVirtualNetworkInfoSender(req)
+	if err != nil {
+		result.Response = resp
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "SyncVirtualNetworkInfo", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.SyncVirtualNetworkInfoResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppServiceEnvironmentsClient", "SyncVirtualNetworkInfo", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// SyncVirtualNetworkInfoPreparer prepares the SyncVirtualNetworkInfo request.
+func (client AppServiceEnvironmentsClient) SyncVirtualNetworkInfoPreparer(ctx context.Context, resourceGroupName string, name string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-02-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/syncVirtualNetwork", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// SyncVirtualNetworkInfoSender sends the SyncVirtualNetworkInfo request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppServiceEnvironmentsClient) SyncVirtualNetworkInfoSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// SyncVirtualNetworkInfoResponder handles the response to the SyncVirtualNetworkInfo request. The method always
+// closes the http.Response Body.
+func (client AppServiceEnvironmentsClient) SyncVirtualNetworkInfoResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
 // Update create or update an App Service Environment.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
@@ -3548,7 +3735,7 @@ func (client AppServiceEnvironmentsClient) UpdatePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3626,7 +3813,7 @@ func (client AppServiceEnvironmentsClient) UpdateMultiRolePoolPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3706,7 +3893,7 @@ func (client AppServiceEnvironmentsClient) UpdateWorkerPoolPreparer(ctx context.
 		"workerPoolName":    autorest.Encode("path", workerPoolName),
 	}
 
-	const APIVersion = "2016-09-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

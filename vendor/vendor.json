@@ -291,8 +291,8 @@
 			"versionExact": "v16.2.1"
 		},
 		{
-			"checksumSHA1": "SuQHgkFuOrdDvajcGAImyzyb6+E=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web",
+			"checksumSHA1": "B5p3eh7slpDzBRNPmq8A8xTQlhA=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web",
 			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
 			"revisionTime": "2018-05-04T19:14:26Z",
 			"version": "v16.2.1",
