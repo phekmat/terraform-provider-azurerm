@@ -88,6 +88,8 @@ The following arguments are supported:
 
 * `curve` - (Optional) Specifies the curve to use when creating an `EC` key. Possible values are `P-256`, `P-384`, `P-521`, and `SECP256K1`. This field will be required in a future relese if `key_type` is `EC` or `EC-HSM`.
 
+* `key_data` - (Optional) Specifies the private RSA key in PEM format to use for this Key Vault Key.
+
 * `key_opts` - (Required) A list of JSON web key operations. Possible values include: `decrypt`, `encrypt`, `sign`, `unwrapKey`, `verify` and `wrapKey`. Please note these values are case sensitive.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.

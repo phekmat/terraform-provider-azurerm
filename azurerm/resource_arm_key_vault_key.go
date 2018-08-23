@@ -1,9 +1,14 @@
 package azurerm
 
 import (
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/base64"
+	"encoding/binary"
+	"encoding/pem"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -91,6 +96,12 @@ func resourceArmKeyVaultKey() *schema.Resource {
 				ConflictsWith:    []string{"key_size"},
 			},
 
+			"key_data": {
+				Type:      schema.TypeString,
+				Optional:  true,
+				Sensitive: true,
+			},
+
 			// Computed
 			"version": {
 				Type:     schema.TypeString,
@@ -171,9 +182,41 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 	// TODO: support `oct` once this is fixed
 	// https://github.com/Azure/azure-rest-api-specs/issues/1739#issuecomment-332236257
 
-	_, err := client.CreateKey(ctx, keyVaultBaseUrl, name, parameters)
-	if err != nil {
-		return fmt.Errorf("Error Creating Key: %+v", err)
+	if keyData, ok := d.GetOk("key_data"); ok {
+		stringKeyOpts := make([]string, 0, len(*keyOptions))
+		for _, opt := range *keyOptions {
+			stringKeyOpts = append(stringKeyOpts, string(opt))
+		}
+		pem, _ := pem.Decode([]byte(strings.TrimSpace(keyData.(string))))
+		if pem == nil {
+			return fmt.Errorf("Could not decode private key: +%v", keyData.(string))
+		}
+		key, err := x509.ParsePKCS1PrivateKey(pem.Bytes)
+		if err != nil {
+			return fmt.Errorf("Could not decode private key: %+v", err)
+		}
+
+		webKey := rsaPrivateKeyToJSONWebKey(key)
+		webKey.KeyOps = &stringKeyOpts
+		webKey.Kty = keyvault.JSONWebKeyType(keyType)
+		hsm := webKey.Kty == keyvault.RSAHSM
+		importParameters := keyvault.KeyImportParameters{
+			Hsm: &hsm,
+			Key: &webKey,
+			KeyAttributes: &keyvault.KeyAttributes{
+				Enabled: utils.Bool(true),
+			},
+			Tags: expandTags(tags),
+		}
+		_, err = client.ImportKey(ctx, keyVaultBaseUrl, name, importParameters)
+		if err != nil {
+			return fmt.Errorf("Error Importing Key: %+v", err)
+		}
+	} else {
+		_, err := client.CreateKey(ctx, keyVaultBaseUrl, name, parameters)
+		if err != nil {
+			return fmt.Errorf("Error Creating Key: %+v", err)
+		}
 	}
 
 	// "" indicates the latest version
@@ -196,7 +239,7 @@ func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) erro
 	if err != nil {
 		return err
 	}
-	if d.HasChange("key_size") || d.HasChange("key_type") || d.HasChange("curve") {
+	if d.HasChange("key_size") || d.HasChange("key_type") || d.HasChange("curve") || d.HasChange("key_data") {
 		return resourceArmKeyVaultKeyCreate(d, meta)
 	}
 	keyOptions := expandKeyVaultKeyOptions(d)
@@ -240,6 +283,7 @@ func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.Set("name", id.Name)
 	d.Set("vault_uri", id.KeyVaultBaseUrl)
+
 	if key := resp.Key; key != nil {
 		d.Set("key_type", string(key.Kty))
 
@@ -304,4 +348,34 @@ func flattenKeyVaultKeyOptions(input *[]string) []interface{} {
 	}
 
 	return results
+}
+
+func rsaPrivateKeyToJSONWebKey(key *rsa.PrivateKey) keyvault.JSONWebKey {
+	// Compute DP, DQ, QI
+	key.Precompute()
+	encode := base64.URLEncoding.EncodeToString
+
+	bytes := make([]byte, 4)
+	binary.BigEndian.PutUint32(bytes, uint32(key.E))
+	e := encode(bytes)
+
+	d := encode(key.D.Bytes())
+	n := encode(key.N.Bytes())
+	dp := encode(key.Precomputed.Dp.Bytes())
+	dq := encode(key.Precomputed.Dq.Bytes())
+	p := encode(key.Primes[0].Bytes())
+	q := encode(key.Primes[1].Bytes())
+	qi := encode(key.Precomputed.Qinv.Bytes())
+	jwk := keyvault.JSONWebKey{
+		N:  &n,
+		E:  &e,
+		Q:  &q,
+		P:  &p,
+		D:  &d,
+		DP: &dp,
+		DQ: &dq,
+		QI: &qi,
+	}
+
+	return jwk
 }
