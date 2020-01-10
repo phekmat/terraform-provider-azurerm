@@ -1252,13 +1252,15 @@ func ExpandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 	if len(configs) == 0 {
 		return logs
 	}
-
 	config := configs[0].(map[string]interface{})
 
 	if v, ok := config["application_logs"]; ok {
 		appLogsConfigs := v.([]interface{})
 
 		for _, config := range appLogsConfigs {
+			if config == nil {
+				continue
+			}
 			appLogsConfig := config.(map[string]interface{})
 
 			logs.ApplicationLogs = &web.ApplicationLogsConfig{}
@@ -1283,6 +1285,9 @@ func ExpandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 		httpLogsConfigs := v.([]interface{})
 
 		for _, config := range httpLogsConfigs {
+			if config == nil {
+				continue
+			}
 			httpLogsConfig := config.(map[string]interface{})
 
 			logs.HTTPLogs = &web.HTTPLogsConfig{}
